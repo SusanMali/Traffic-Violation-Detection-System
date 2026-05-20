@@ -1,6 +1,13 @@
 venv/
+media/
+staticfiles/
+logs/
+
+*.mp4
+*.pt
+*.sqlite3
+db.sql
+
 __pycache__/
 *.pyc
 .env
-media/
-*.mp4
