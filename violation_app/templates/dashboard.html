@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4 fw-bold">
+            <i class="fas fa-tachometer-alt me-3" style="color: #667eea;"></i>
+            Welcome, {{ user.username }}!
+        </h1>
+        <p class="lead text-muted">Monitor and analyze traffic violations with advanced computer vision.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-cloud-upload-alt fa-4x mb-3" style="color: #667eea;"></i>
+                <h3 class="card-title">Upload Video</h3>
+                <p class="card-text text-muted">Upload a new traffic video for real‑time violation analysis.</p>
+                <a href="{% url 'upload_video' %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-upload me-2"></i>Upload Now
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-chart-line fa-4x mb-3" style="color: #11998e;"></i>
+                <h3 class="card-title">View Reports</h3>
+                <p class="card-text text-muted">Access detailed violation reports and processed videos.</p>
+                <a href="{% url 'reports' %}" class="btn btn-success mt-3">
+                    <i class="fas fa-eye me-2"></i>View Reports
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-user-cog fa-4x mb-3" style="color: #f39c12;"></i>
+                <h3 class="card-title">Profile</h3>
+                <p class="card-text text-muted">Manage your account settings and preferences.</p>
+                <a href="{% url 'profile' %}" class="btn btn-warning mt-3">
+                    <i class="fas fa-user-edit me-2"></i>View Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Quick Stats
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h4 class="fw-bold">{{ total_videos }}</h4>
+                        <p class="text-muted">Total Videos</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h4 class="fw-bold">{{ processed_videos }}</h4>
+                        <p class="text-muted">Processed</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h4 class="fw-bold">{{ total_violations }}</h4>
+                        <p class="text-muted">Total Violations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

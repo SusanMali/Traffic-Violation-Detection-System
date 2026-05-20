@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-gradient-primary text-white text-center py-3 rounded-top-4">
+                {% comment %} <i class="fas fa-sign-in-alt fa-2x mb-2"></i> {% endcomment %}
+                <h4 class="mb-0 fw-bold">Login</h4>
+            </div>
+            <div class="card-body p-4 p-lg-5">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Username -->
+                    <div class="form-floating mb-4">
+                        <input type="text" name="username" id="id_username" class="form-control" placeholder="Username" required>
+                        <label for="id_username">
+                            <i class="fas fa-user me-2"></i>Username
+                        </label>
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">{{ form.username.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Password -->
+                    <div class="form-floating mb-4">
+                        <input type="password" name="password" id="id_password" class="form-control" placeholder="Password" required>
+                        <label for="id_password">
+                            <i class="fas fa-lock me-2"></i>Password
+                        </label>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">{{ form.password.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ form.non_field_errors|striptags }}
+                        </div>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-3 mt-3 fw-bold">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </button>
+                </form>
+                <hr class="my-4">
+                <p class="text-center mb-0">
+                    Don't have an account? 
+                    <a href="{% url 'signup' %}" class="fw-bold text-decoration-none">Sign up now</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

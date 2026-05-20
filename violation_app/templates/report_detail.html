@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-alt me-2" style="color: #667eea;"></i>{{ video.video_name }}</h2>
+    <div>
+        <a href="{% url 'download_pdf' video.id %}" class="btn btn-success">
+            <i class="fas fa-download me-2"></i>Download PDF
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Video Information</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="fas fa-map-marker-alt me-2"></i>Location</span>
+                        <strong>{{ video.location }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="fas fa-calendar-alt me-2"></i>Uploaded</span>
+                        <strong>{{ video.uploaded_at|date:"Y-m-d H:i" }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="fas fa-exclamation-triangle me-2"></i>Total Violations</span>
+                        <strong class="text-danger">{{ video.violation_count }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="fas fa-film me-2"></i>FPS</span>
+                        <strong>{{ video.fps|floatformat:2 }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="fas fa-images me-2"></i>Total Frames</span>
+                        <strong>{{ video.total_frames }}</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        {% if video.processed_video %}
+        <div class="card">
+            <div class="card-header">Processed Video</div>
+            <div class="card-body p-0 video-container">
+                <video controls>
+                    <source src="{% url 'play_video' video.id %}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">Violation Details</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Timestamp (s)</th>
+                    <th>Vehicle Type</th>
+                    <th>Frame Number</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in violations %}
+                <tr>
+                    <td>{{ v.timestamp|floatformat:2 }}</td>
+                    <td><span class="badge bg-info">{{ v.vehicle_type }}</span></td>
+                    <td>{{ v.frame_number }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height:6px;">
+                                <div class="progress-bar bg-success" style="width:{{ v.confidence|floatformat:2 }}%"></div>
+                            </div>
+                            <span>{{ v.confidence|floatformat:2 }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center py-4">No violations recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

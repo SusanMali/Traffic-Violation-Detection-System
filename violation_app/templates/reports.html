@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">
+    <i class="fas fa-chart-bar me-2" style="color: #667eea;"></i>
+    My Reports
+</h2>
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Video Name</th>
+                    <th>Location</th>
+                    <th>Uploaded Date</th>
+                    <th>Status</th>
+                    <th>Violations</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for video in videos %}
+                <tr id="video-row-{{ video.id }}">
+                    <td><i class="fas fa-video me-2 text-muted"></i>{{ video.video_name }}</td>
+                    <td><i class="fas fa-map-pin me-2 text-muted"></i>{{ video.location }}</td>
+                    <td>{{ video.uploaded_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <span class="badge-status status-{{ video.status }}">{{ video.get_status_display }}</span>
+                        {% if video.status == 'processing' %}
+                        <div class="progress mt-2">
+                            <div id="progress-bar-{{ video.id }}" 
+                                 class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 style="width: {{ video.progress_percentage }}%;">
+                                {{ video.progress_percentage }}%
+                            </div>
+                        </div>
+                        <small id="frame-info-{{ video.id }}" class="text-muted">
+                            Frame: {{ video.current_frame }} / {{ video.total_frames }}
+                            <span id="eta-{{ video.id }}">
+                                {% if video.estimated_seconds_remaining %}
+                                    | ETA: {{ video.estimated_seconds_remaining }}s
+                                {% endif %}
+                            </span>
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-danger rounded-pill px-3 py-2">{{ video.violation_count }}</span></td>
+                    <td>
+                        {% if video.status == 'completed' %}
+                            <a href="{% url 'report_detail' video.id %}" class="btn btn-sm btn-info me-1">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'download_pdf' video.id %}" class="btn btn-sm btn-success me-1">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
+                        {% elif video.status == 'processing' %}
+                            <button class="btn btn-sm btn-warning" disabled>
+                                <i class="fas fa-spinner fa-spin"></i> Processing
+                            </button>
+                        {% else %}
+                            <span class="text-muted">Pending</span>
+                        {% endif %}
+                        <form method="post" action="{% url 'delete_report' video.id %}" style="display:inline;" onsubmit="return confirm('Delete this report?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center py-4">No videos uploaded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Format seconds to mm:ss
+function formatTime(seconds) {
+    if (seconds <= 0) return 'calculating...';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+}
+
+// Poll for progress updates on processing videos
+document.addEventListener('DOMContentLoaded', function() {
+    const processingVideos = document.querySelectorAll('[id^="video-row-"]');
+    processingVideos.forEach(row => {
+        const videoId = row.id.replace('video-row-', '');
+        const statusBadge = row.querySelector('.badge-status');
+        if (statusBadge && statusBadge.textContent.trim() === 'Processing') {
+            pollProgress(videoId);
+        }
+    });
+});
+
+function pollProgress(videoId) {
+    const progressBar = document.getElementById(`progress-bar-${videoId}`);
+    const frameInfo = document.getElementById(`frame-info-${videoId}`);
+    const etaSpan = document.getElementById(`eta-${videoId}`);
+    const statusBadge = document.querySelector(`#video-row-${videoId} .badge-status`);
+    const actionsCell = document.querySelector(`#video-row-${videoId} td:last-child`);
+    
+    if (!progressBar) return;
+    
+    const interval = setInterval(() => {
+        fetch(`/report/${videoId}/progress/`)
+            .then(response => response.json())
+            .then(data => {
+                // Update progress bar
+                progressBar.style.width = data.progress_percentage + '%';
+                progressBar.setAttribute('aria-valuenow', data.progress_percentage);
+                progressBar.textContent = data.progress_percentage + '%';
+                
+                // Update frame info and ETA
+                let frameText = `Frame: ${data.current_frame} / ${data.total_frames}`;
+                if (data.estimated_seconds_remaining && data.estimated_seconds_remaining > 0) {
+                    frameText += ` | ETA: ${formatTime(data.estimated_seconds_remaining)}`;
+                }
+                frameInfo.innerHTML = frameText;
+                
+                // Check if processing completed
+                if (data.status === 'completed') {
+                    clearInterval(interval);
+                    statusBadge.textContent = 'Completed';
+                    statusBadge.className = 'badge-status status-completed';
+                    // Update actions cell
+                    actionsCell.innerHTML = `
+                        <a href="/report/${videoId}/" class="btn btn-sm btn-info me-1"><i class="fas fa-eye"></i></a>
+                        <a href="/report/${videoId}/pdf/" class="btn btn-sm btn-success me-1"><i class="fas fa-file-pdf"></i></a>
+                        <form method="post" action="/report/${videoId}/delete/" style="display:inline;" onsubmit="return confirm('Delete this report?');">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="${getCsrfToken()}">
+                            <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash-alt"></i></button>
+                        </form>
+                    `;
+                    // Update violation count
+                    const violationCell = document.querySelector(`#video-row-${videoId} td:nth-child(5)`);
+                    violationCell.innerHTML = `<span class="badge bg-danger rounded-pill px-3 py-2">${data.violation_count}</span>`;
+                } else if (data.status === 'failed') {
+                    clearInterval(interval);
+                    statusBadge.textContent = 'Failed';
+                    statusBadge.className = 'badge-status status-failed';
+                    actionsCell.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Failed</span>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching progress:', error);
+                clearInterval(interval);
+            });
+    }, 2000);
+}
+
+// Helper to get CSRF token for dynamically created forms
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+</script>
+{% endblock %}

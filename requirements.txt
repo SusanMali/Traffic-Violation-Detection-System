@@ -1,0 +1,9 @@
+Django==4.2
+mysqlclient==2.2.0
+opencv-python==4.8.1.78
+ultralytics==8.0.200
+torch<2.6
+torchvision<0.19
+numpy==1.24.3
+Pillow==10.0.0
+reportlab==4.0.4

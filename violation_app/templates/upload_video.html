@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-gradient-primary text-white py-3 rounded-top-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-cloud-upload-alt fa-2x me-3"></i>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Upload New Video</h4>
+                        <p class="mb-0 opacity-75">Supported formats: MP4, AVI, MOV</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4 p-lg-5">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Video Name -->
+                    <div class="form-floating mb-4">
+                        {{ form.video_name }}
+                        <label for="{{ form.video_name.id_for_label }}">
+                            Video Name
+                        </label>
+                        {% if form.video_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.video_name.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="form-floating mb-4">
+                        {{ form.location }}
+                        <label for="{{ form.location.id_for_label }}">
+                            <i class="fas fa-map-marker-alt me-2"></i>Location
+                        </label>
+                        {% if form.location.errors %}
+                            <div class="invalid-feedback d-block">{{ form.location.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Video File -->
+                    <div class="mb-4">
+                        <label for="{{ form.video_file.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-video me-2"></i>Select Video File
+                        </label>
+                        <div class="input-group">
+                            {{ form.video_file }}
+                            <span class="input-group-text bg-light"><i class="fas fa-folder-open"></i></span>
+                        </div>
+                        {% if form.video_file.errors %}
+                            <div class="invalid-feedback d-block">{{ form.video_file.errors|striptags }}</div>
+                        {% endif %}
+                        <small class="text-muted">Maximum file size: 100MB</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-3 mt-4 fw-bold">
+                        <i class="fas fa-rocket me-2"></i>Start Processing
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
